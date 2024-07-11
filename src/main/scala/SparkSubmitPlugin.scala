@@ -5,6 +5,11 @@ import sbt.plugins.JvmPlugin
 import sbt.{AutoPlugin, Command, Compile, Def, File, Keys, Project, Resolver, ThisBuild, settingKey, taskKey}
 
 
+//TODO: добавить проверку на размер, хеш, дату создания файлов перед тем как их копировать. Пропускать при копировании если уже есть такие на sftp.
+//TODO: получить stdout stderr в консоль(log) sbt.
+//TODO: Добыть appID
+//TODO: Добыть url SparkUI
+
 object SparkSubmitPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
