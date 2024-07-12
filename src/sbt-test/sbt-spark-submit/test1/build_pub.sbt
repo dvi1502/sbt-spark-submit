@@ -35,6 +35,32 @@ lazy val sparkSubmitConf = Seq(
   sparkName := "My tested application",
   sparkVerbose := false,
 
+  scriptEnvironments := Map(
+    "SPARK_MAJOR_VERSION" -> "3"
+  ),
+
+  beforeSubmitScript := Seq(
+    "echo $SPARK_MAJOR_VERSION",
+    "ls -la /home/dmvivakin/sbt",
+    "rm -r /home/dmvivakin/sbt/*"
+  ),
+
+  afterSubmitScript := Seq(
+    "echo $SPARK_MAJOR_VERSION",
+    "echo $SPARK_APP_ID",
+    "yarn logs -applicationId $SPARK_APP_ID -out ./yarn-log.txt",
+    "cat $(find yarn-log.txt/. -name container*) | grep -E 'Main$:'",
+  ),
+
+
+  sparkDeployMode := Cluster(),
+  sparkMaster := Yarn(),
+  //  sparkMaster := Local(),
+
+  className := "ru.dvi.sbt.test.Main",
+  sparkName := "My tested application",
+  sparkVerbose := false,
+
   sparkConf := Map(
     "spark.executor.memory" -> "512m",
     "spark.executor.memoryOverhead" -> "512m",
