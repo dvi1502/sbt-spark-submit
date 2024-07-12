@@ -49,7 +49,7 @@ lazy val sparkSubmitConf = Seq(
     "echo $SPARK_MAJOR_VERSION",
     "echo $SPARK_APP_ID",
     "yarn logs -applicationId $SPARK_APP_ID -out ./yarn-log.txt",
-    "cat $(find yarn-log.txt/. -name container*) | grep -E 'Main$:'",
+    "cat $(find ./yarn-log.txt/. -name container*) | head -n 20",
   ),
 
 
