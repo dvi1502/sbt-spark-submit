@@ -4,11 +4,7 @@ import sbt.Keys.*
 import sbt.plugins.JvmPlugin
 import sbt.{AutoPlugin, Command, Compile, Def, File, Keys, Project, Resolver, ThisBuild, settingKey, taskKey}
 
-
-//TODO: добавить проверку на размер, хеш, дату создания файлов перед тем как их копировать. Пропускать при копировании если уже есть такие на sftp.
-//TODO: получить stdout stderr в консоль(log) sbt.
-//TODO: Добыть appID
-//TODO: Добыть url SparkUI
+// TODO: добавить проверку на размер, хеш, дату создания файлов перед тем как их копировать. Пропускать при копировании если уже есть такие на sftp.
 
 object SparkSubmitPlugin extends AutoPlugin {
   override def trigger = allRequirements
@@ -45,10 +41,12 @@ object SparkSubmitPlugin extends AutoPlugin {
     val sshUser = settingKey[String]("SSH user")
     val sshPort = settingKey[Int]("SSH port")
     val sshKey = settingKey[String]("SSH key")
+    //    val sshPassword = settingKey[String]("SSH password")
 
 
     // Shell options
     val workingDirectory = settingKey[String]("Point to the script call location.")
+    val scriptEnvironments = settingKey[Map[String,String]]("SSH key")
     val beforeSubmitScript = settingKey[Seq[String]]("Script witch be executed before spark submit.")
     val afterSubmitScript = settingKey[Seq[String]]("Script witch be executed after spark submit.")
 
@@ -73,8 +71,9 @@ object SparkSubmitPlugin extends AutoPlugin {
       (state / sshHost).value,
       (state / sshPort).value,
       (state / sshUser).value,
-      (state / sshKey).value,
+      new KeyAuth((state / sshKey).value),
       (state / workingDirectory).value,
+      "",
     )
 
 
@@ -100,6 +99,7 @@ object SparkSubmitPlugin extends AutoPlugin {
       resolvers = (state / sparkRepositories).value,
       beforeScript = (state / beforeSubmitScript).value,
       afterScript = (state / afterSubmitScript).value,
+      scriptEnvironments = (state / scriptEnvironments).value,
     )
 
     val submit = new SparkSubmitter(settings, sshSettings, streams.value.log)
@@ -116,6 +116,7 @@ object SparkSubmitPlugin extends AutoPlugin {
     sshKey := "~/.ssh/id_dmp",
     workingDirectory := s"/home/${sshUser}",
 
+    scriptEnvironments := Map.empty[String, String],
     beforeSubmitScript := Nil,
     afterSubmitScript := Nil,
 

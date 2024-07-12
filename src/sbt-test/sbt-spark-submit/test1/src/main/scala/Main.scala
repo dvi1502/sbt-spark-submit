@@ -8,7 +8,6 @@ import org.apache.spark.sql.functions._
 object Main extends Logging {
 
   implicit val spark: SparkSession = SparkSession.builder()
-    .master("local[1]")
     .appName("test sbt app")
     .getOrCreate()
 

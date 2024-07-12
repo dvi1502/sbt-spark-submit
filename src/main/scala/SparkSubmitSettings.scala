@@ -24,6 +24,7 @@ case class SparkSubmitSettings(
                                 scalaVersion: String,
                                 beforeScript: Seq[String],
                                 afterScript: Seq[String],
+                                scriptEnvironments: Map[String,String],
                               )
 {
   def pretty(): String =

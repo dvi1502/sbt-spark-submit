@@ -37,7 +37,7 @@ build/
 ### Mac OS ###
 .DS_Store
 /src/sbt-test/sbt-spark-submit/test1/.bsp/
-/src/sbt-test/sbt-spark-submit/test1/build_secret.sbt
+/src/sbt-test/sbt-spark-submit/test1/build.sbt
 /.bsp/sbt.json
 /.idea/
 /.bsp/

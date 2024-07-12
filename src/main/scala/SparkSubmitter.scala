@@ -10,6 +10,8 @@ import scala.sys.process.*
 
 class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, logger: Logger) {
 
+  val environments = scala.collection.mutable.ArrayBuffer[String]()
+
   def commandLine(app: String, jars: Seq[String], files: Seq[String]): Seq[String] = {
 
     val sparkSbmitCmd = (settings.master, System.getProperty("os.name").contains("Windows")) match {
@@ -78,7 +80,7 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
 
       case _ =>
         files.map { filename =>
-          SSH.upload(sshSettings, filename, logger)
+          SFTP.upload(sshSettings, filename, logger)
           val file = FileSystems.getDefault.getPath(filename)
           val fl = s"${sshSettings.SFTPDSTDIR}/${file.getFileName.toString}"
           logger.debug(fl)
@@ -92,12 +94,14 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
     (settings.master, commands.nonEmpty) match {
       case (_: Local, true) =>
         commands.foreach { command =>
-
           if (s"$command".! != 0) throw new RuntimeException("Error while running application")
         }
       case (_, true) =>
         commands.foreach { command =>
-          SSH.command(sshSettings, command, logger)
+          SSH.exec(sshSettings, (environments.toSeq :+ command) .mkString(";"), logger) match {
+            case Some(value) => environments += s"""export SPARK_APP_ID=${value}"""
+            case None =>
+          }
         }
       case (_, false) =>
         logger.info("Script not defined")
@@ -113,6 +117,7 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
 
     logger.info("")
     logger.info("**** before script *************")
+    settings.scriptEnvironments.flatMap { case (key, value) => environments += s"""export $key=$value""" }
     run(settings.beforeScript)
 
 
