@@ -26,12 +26,13 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
     cmd ++= settings.deployMode.args
 
     if (settings.appName.nonEmpty) cmd ++= Seq("--name", s""""${settings.appName}"""")
-    if (settings.driverMemory.nonEmpty) cmd ++= Seq("--driver-memory", s""""${settings.driverMemory.get}"""")
+
+    if (settings.driverMemory.nonEmpty) cmd ++= Seq("--driver-memory", s"""${settings.driverMemory.get}""")
+    if (settings.executorMemory.nonEmpty) cmd ++= Seq("--executor-memory", s"""${settings.executorMemory.get}""")
 
     if (settings.driverLibraryPath.nonEmpty) cmd ++= Seq("--driver-library-path", s""""${settings.driverLibraryPath.get}"""")
     if (settings.driverClassPath.nonEmpty) cmd ++= Seq("--driver-class-path", s""""${settings.driverClassPath.get}"""")
 
-    if (settings.executorMemory.nonEmpty) cmd ++= Seq("--executor-memory", s""""${settings.executorMemory.get}"""")
     if (settings.proxyUser.nonEmpty) cmd ++= Seq("--proxy-user", s""""${settings.proxyUser.get}"""")
 
     if (settings.verbose) cmd ++= Seq("--verbose")
@@ -39,25 +40,25 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
     if (files.mkString(",").nonEmpty) cmd ++= Seq("--files", s""""${files.mkString(",")}"""")
     if (jars.mkString(",").nonEmpty) cmd ++= Seq("--jars", s""""${jars.mkString(",")}"""")
 
+    if (settings.enableDependencies) {
+      logger.info("********* packages ***********")
+      settings.packages.foreach { pkg =>
+        logger.info(pkg.toString())
+        logger.info(s"org=${pkg.organization}, name=${pkg.name}, revision=${pkg.revision}, crossVersion=${pkg.crossVersion}")
+      }
 
-    logger.info("********* packages ***********")
-    settings.packages.foreach { pkg =>
-      logger.info(pkg.toString())
-      logger.info(s"org=${pkg.organization}, name=${pkg.name}, revision=${pkg.revision}, crossVersion=${pkg.crossVersion}")
+      val packageArgs = finalDependencies.map(_.toString)
+
+      if (packageArgs.nonEmpty) cmd ++= Seq("--packages", s""""${packageArgs.mkString(",")}"""")
+
+      if (settings.resolvers.nonEmpty)
+        cmd ++= Seq("--repositories", s""""${settings.resolvers.mkString(",")}"""")
     }
-
-    val packageArgs = finalDependencies.map(_.toString)
-
-    if (packageArgs.nonEmpty) cmd ++= Seq("--packages", s""""${packageArgs.mkString(",")}"""")
-
 
     val confArgs = settings.conf.flatMap { case (key, value) => Seq("--conf", s""""$key=$value"""") }
 
     cmd ++= confArgs
 
-    if (settings.resolvers.nonEmpty) {
-      cmd ++= Seq("--repositories", s""""${settings.resolvers.mkString(",")}"""")
-    }
 
     cmd += app
 
@@ -98,7 +99,7 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
         }
       case (_, true) =>
         commands.foreach { command =>
-          SSH.exec(sshSettings, (environments.toSeq :+ command) .mkString(";"), logger) match {
+          SSH.exec(sshSettings, (environments.toSeq :+ command).mkString(";"), logger) match {
             case Some(value) => environments += s"""export SPARK_APP_ID=${value}"""
             case None =>
           }

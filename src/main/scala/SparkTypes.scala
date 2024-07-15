@@ -42,7 +42,7 @@ case class Yarn(numExecutors: Option[Int] = None,
       ("--num-executors", numExecutors),
       ("--executor-cores", executorCores),
       ("--queue", queue),
-      ("--prinicpal", principal),
+      ("--principal", principal),
       ("--keytab", keytab),
     ).toArgs
 

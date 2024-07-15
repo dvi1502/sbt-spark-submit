@@ -27,13 +27,14 @@ object SparkSubmitPlugin extends AutoPlugin {
     val sparkRepositories = settingKey[Seq[Resolver]]("Additional resolvers")
     val sparkFiles = settingKey[Seq[String]]("List of files to be placed in the working directory of each executor")
     val sparkConf = settingKey[Map[String, Any]]("Arbitrary Spark configuration property")
-    val sparkDriverMemory = settingKey[Option[Long]]("Memory for driver in bytes")
+    val sparkDriverMemory = settingKey[Option[String]]("Memory for driver in bytes")
     val sparkDriverJavaOptions = settingKey[Option[String]]("Extra Java options to pass to the driver")
     val sparkDriverLibraryPath = settingKey[Option[String]]("Extra library path entries to pass to the driver")
     val sparkDriverClassPath = settingKey[Option[String]]("Extra class path entries to pass to the driver")
-    val sparkExecutorMemory = settingKey[Option[Long]]("Memory per executor")
+    val sparkExecutorMemory = settingKey[Option[String]]("Memory per executor")
     val sparkProxyUser = settingKey[Option[String]]("User to impersonate when submitting the application.")
     val sparkVerbose = settingKey[Boolean]("Print additional debug output")
+    val sparkEnableDependencies = settingKey[Boolean]("Print additional debug output")
 
 
     // SSH configuration
@@ -96,6 +97,7 @@ object SparkSubmitPlugin extends AutoPlugin {
       verbose = (state / sparkVerbose).value,
       packages = libraryDependencies.value,
       scalaVersion = scalaVersion.value,
+      enableDependencies  = (state / sparkEnableDependencies).value,
       resolvers = (state / sparkRepositories).value,
       beforeScript = (state / beforeSubmitScript).value,
       afterScript = (state / afterSubmitScript).value,
@@ -136,6 +138,8 @@ object SparkSubmitPlugin extends AutoPlugin {
     sparkExecutorMemory := None,
     sparkProxyUser := None,
     sparkVerbose := false,
+
+    sparkEnableDependencies := false,
     sparkRepositories := resolvers.value,
 
 
