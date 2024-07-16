@@ -1,16 +1,31 @@
 package ru.dvi.sbt.sparksubmit
 
 
+import com.jcraft.jsch.SftpATTRS
 import sbt.*
 
-import java.nio.file.FileSystems
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileSystems, Path}
+import java.util.concurrent.TimeUnit
 import scala.collection.mutable.ArrayBuffer
 import scala.sys.process.*
 
 
 class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, logger: Logger) {
 
+
   val environments = scala.collection.mutable.ArrayBuffer[String]()
+
+  private def attrs(path: Path): Option[BasicFileAttributes] = {
+    try {
+      Some(java.nio.file.Files.readAttributes(path, classOf[BasicFileAttributes]))
+    } catch {
+      case ex: Exception =>
+        logger.error(ex.toString())
+        None
+    }
+  }
+
 
   def commandLine(app: String, jars: Seq[String], files: Seq[String]): Seq[String] = {
 
@@ -80,15 +95,31 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
         }
 
       case _ =>
-        files.map { filename =>
-          SFTP.upload(sshSettings, filename, logger)
-          val file = FileSystems.getDefault.getPath(filename)
-          val fl = s"${sshSettings.SFTPDSTDIR}/${file.getFileName.toString}"
-          logger.debug(fl)
-          fl
-        }
+        files
+          .map { filename =>
+            val file = FileSystems.getDefault.getPath(filename)
 
+            val attrLocal: Option[BasicFileAttributes] = attrs(file.toAbsolutePath)
+            val attrRemote: Option[SftpATTRS] = SFTP.stat(sshSettings, file.getFileName.toString, logger)
+
+            val skip: Boolean =
+              (attrLocal, attrRemote) match {
+                case (Some(attrLocal0), Some(attrRemote0)) =>
+                  logger.debug(s"skip = {${attrLocal0.size()} == ${attrRemote0.getSize} & ${attrLocal0.lastModifiedTime().to(TimeUnit.SECONDS).toInt} < ${attrRemote0.getMTime}}")
+                  attrLocal0.size() == attrRemote0.getSize & attrLocal0.isRegularFile == attrRemote0.isReg & attrLocal0.lastModifiedTime().to(TimeUnit.SECONDS).toInt < attrRemote0.getMTime
+
+                case _ => false
+              }
+            if (skip) logger.info(s"""File "$file" skiped.""")
+            (skip, filename)
+          }
+          .map { case (skip, filename) =>
+            if (!skip) SFTP.upload(sshSettings, filename, logger)
+            val file = FileSystems.getDefault.getPath(filename)
+            s"${sshSettings.SFTPDSTDIR}/${file.getFileName.toString}"
+          }
     }
+
 
   def run(commands: Seq[String]): Unit = {
 

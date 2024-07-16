@@ -2,7 +2,7 @@ package ru.dvi.sbt.sparksubmit
 
 import sbt.Keys.*
 import sbt.plugins.JvmPlugin
-import sbt.{AutoPlugin, Command, Compile, Def, File, Keys, Project, Resolver, ThisBuild, settingKey, taskKey}
+import sbt.{AutoPlugin, Def, Resolver, settingKey, taskKey}
 
 // TODO: добавить проверку на размер, хеш, дату создания файлов перед тем как их копировать. Пропускать при копировании если уже есть такие на sftp.
 
@@ -74,7 +74,7 @@ object SparkSubmitPlugin extends AutoPlugin {
       (state / sshUser).value,
       new KeyAuth((state / sshKey).value),
       (state / workingDirectory).value,
-      "",
+      (state / baseDirectory).value.getAbsolutePath,
     )
 
 

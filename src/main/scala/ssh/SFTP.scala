@@ -99,11 +99,8 @@ object SFTP {
         try {
           channelSftp.connect()
           channelSftp.cd(connInfo.SFTPDSTDIR)
-          //          channelSftp.lcd(connInfo.LOCALDSTDIR)
-          log.info(s"Gei stat of file $filename")
           val stat: SftpATTRS = channelSftp.stat(filename)
-          //          val lstat: SftpATTRS = channelSftp.lstat(filename)
-          log.info("   ... submitted successful!")
+
           Some(stat)
 
         } catch {
