@@ -60,8 +60,9 @@ addSbtPlugin("ru.dvi" % "sbt-spark-submit" % "0.1.0-SNAPSHOT")
 * sshPort  - Порт ssh-сервера (default 22)  
 * sshKey   - private key file   
 * workingDirectory   - target upload directory  
-* scriptEnvironments - before submit script  
-* afterSubmitScript  - after submit script  
+* beforeSubmitScript - before submit script  
+* afterSubmitScript  - after submit script
+* scriptEnvironments - задать переменные окружения, выполняется перед выполнением каждой команды beforeSubmitScript и afterSubmitScript
 
 **Пример:**  
 
