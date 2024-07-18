@@ -159,7 +159,7 @@ lazy val sparkSubmitConf = Seq(
 
 ## Как использовать
 
-Этот плагин sperk-submit целесообразно использовать совместно с плагином sbt-assembly. 
+Этот плагин sperk-submit целесообразно использовать совместно с плагином [sbt-assembly](https://github.com/sbt/sbt-assembly) . 
 Для этого в файл plugins.sbt нужно добавить строчку:
 ```sbt
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.15.0")
