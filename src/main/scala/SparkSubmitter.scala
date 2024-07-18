@@ -74,12 +74,12 @@ class SparkSubmitter(settings: SparkSubmitSettings, sshSettings: SSHSettings, lo
 
     cmd ++= confArgs
 
-
     cmd += app
 
     cmd ++= settings.args.map { arg => s""""$arg"""" }
 
     cmd
+
   }
 
   def copy(files: Seq[String]): Seq[String] =
